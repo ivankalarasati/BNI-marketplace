@@ -1,36 +1,23 @@
+const swaggerJsdoc = require("swagger-jsdoc");
 
-const swaggerJSDoc = require('swagger-jsdoc');
-
-const swaggerOptions = {
+const options = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'Coba Cobi',
-      version: '1.0.0',
-      description: 'API documentation for Coba Cobi',
+      title: "API Documentation",
+      version: "1.0.0",
+      description: "This is the API documentation for the project.",
     },
-    components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-          }
-        }
-    },
-    security: [
-        {
-          bearerAuth: [],
-        }
-    ],
     servers: [
       {
-        url: 'http://localhost:3001', // sesuai base URL server
+        url: "http://localhost:3000", // Replace with your server URL
+        description: "Local server",
       },
     ],
   },
-  apis: ['./routes/*.js'], // lokasi file dengan anotasi Swagger (pakai JSDoc-style)
+  apis: ["./routes/*.js"], // Path to the route files containing Swagger annotations
 };
 
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
-module.exports = swaggerSpec;
+const openapiSpecification = swaggerJsdoc(options);
+
+module.exports = openapiSpecification;

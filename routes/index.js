@@ -1,209 +1,265 @@
-const route = require("express").Router()
-const UserControllers = require("../controllers/UserControllers")
-const PusrchaseControllers = require("../controllers/PurchaseConrollers")
-const authentication = require("../middlewares/authentication")
-const authorization = require("../middlewares/authorization")
+const route = require("express").Router();
+const ProductControllers = require("../controllers/ProductControllers.js");
+const PurchasesControllers = require("../controllers/PurchaseControllers.js");
+const UserControllers = require("../controllers/UserControllers.js");
+const Authentication = require("../middlewares/authentication.js");
+const Authorization = require("../middlewares/authorization.js");
 
 /**
  * @swagger
- * /api/login:
- *   post:
- *     summary: Login user dan mendapatkan token akses
- *     description: Endpoint untuk login menggunakan email dan password, serta mengembalikan token akses JWT jika berhasil.
- *     operationId: loginUser
- *     tags:
- *       - Authentication
- *     requestBody:
- *       description: Informasi login yang diperlukan berupa email dan password
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 example: "user@example.com"
- *               password:
- *                 type: string
- *                 example: "yourPassword123"
+ * /:
+ *   get:
+ *     summary: Welcome message
+ *     description: Returns a welcome message for the API.
  *     responses:
  *       200:
- *         description: Login berhasil dan token akses dikembalikan
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
- *                   description: Token akses JWT untuk autentikasi di endpoint lain
- *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
- *       401:
- *         description: Email atau password tidak valid
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Invalid email or password"
- *       500:
- *         description: Terjadi kesalahan server internal
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Internal server error"
+ *         description: Welcome message
  */
-route.post("/api/login", UserControllers.loginUser)
+route.get("/", (req, res) => {
+  res.send("Welcome to the API");
+});
 
 /**
  * @swagger
  * /api/register:
  *   post:
  *     summary: Register a new user
- *     description: Create a new account by providing name, email, and password. Role is optional and defaults to 'user'.
  *     tags:
- *       - Authentication
+ *       - Users
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - name
- *               - email
- *               - password
  *             properties:
  *               name:
  *                 type: string
- *                 example: Jane Doe
  *               email:
  *                 type: string
- *                 format: email
- *                 example: janedoe@example.com
  *               password:
  *                 type: string
- *                 format: password
- *                 example: securePassword123
  *               role:
  *                 type: string
- *                 description: Optional. Default is 'user'.
- *                 example: user
  *     responses:
  *       201:
- *         description: Register successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Register successful
- *                 user:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                       example: Jane Doe
- *                     email:
- *                       type: string
- *                       example: janedoe@example.com
- *                     role:
- *                       type: string
- *                       example: user
+ *         description: User registered successfully
  *       400:
- *         description: Bad request - Missing required fields
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: integer
- *                   example: 400
- *                 message:
- *                   type: string
- *                   example: Name, email, and password are required
- *       409:
- *         description: Conflict - Email already registered
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: integer
- *                   example: 409
- *                 message:
- *                   type: string
- *                   example: Email already registered
+ *         description: Bad request
  */
-route.post("/api/register", UserControllers.registerUser)
-
-route.post("/api/purchase", authentication, PusrchaseControllers.addPurchase)
+route.post("/api/register", UserControllers.userRegister);
 
 /**
  * @swagger
- * /api/users:
- *   get:
- *     summary: Get all users (Admin only)
- *     description: Retrieve a list of all users. Only accessible to users with 'admin' role. Requires Bearer token.
+ * /api/login:
+ *   post:
+ *     summary: Login a user
  *     tags:
  *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Unauthorized
+ */
+route.post("/api/login", UserControllers.userLogin);
+
+/**
+ * @swagger
+ * /api/products:
+ *   post:
+ *     summary: Create a new product
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Product created successfully
+ *       400:
+ *         description: Bad request
+ */
+route.post("/api/products", Authentication, ProductControllers.createProduct);
+
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Get all products
+ *     tags:
+ *       - Products
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: A list of users
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       name:
- *                         type: string
- *                         example: John Doe
- *                       role:
- *                         type: string
- *                         example: admin
- *       401:
- *         description: Unauthorized - Missing or invalid token
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Invalid or missing token
- *       403:
- *         description: Forbidden - User is not an admin
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Access forbidden: admin only"
+ *         description: Products retrieved successfully
  */
-route.get("/api/users", authentication, authorization, UserControllers.getAllUsers)
+route.get("/api/products", Authentication, ProductControllers.getAllProducts);
 
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     summary: Get a product by ID
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The product ID
+ *     responses:
+ *       200:
+ *         description: Product retrieved successfully
+ *       404:
+ *         description: Product not found
+ */
+route.get(
+  "/api/products/:id",
+  Authentication,
+  ProductControllers.getProductById
+);
 
-module.exports = route
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   put:
+ *     summary: Update a product
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The product ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
+ *       404:
+ *         description: Product not found
+ */
+route.put(
+  "/api/products/:id",
+  Authentication,
+  ProductControllers.updateProduct
+);
+
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   delete:
+ *     summary: Delete a product
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The product ID
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *       404:
+ *         description: Product not found
+ */
+route.delete(
+  "/api/products/:id",
+  Authentication,
+  ProductControllers.deleteProduct
+);
+
+/**
+ * @swagger
+ * /api/purchases:
+ *   post:
+ *     summary: Purchase a product
+ *     tags:
+ *       - Purchases
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productId:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Purchase successful
+ *       400:
+ *         description: Bad request
+ */
+route.post(
+  "/api/purchases",
+  Authentication,
+  PurchasesControllers.purchasesProduct
+);
+
+/**
+ * @swagger
+ * /api/purchases:
+ *   get:
+ *     summary: Get user purchases
+ *     tags:
+ *       - Purchases
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Purchases retrieved successfully
+ */
+route.get(
+  "/api/purchases",
+  Authentication,
+  PurchasesControllers.getUserPurchases
+);
+
+module.exports = route;

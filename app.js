@@ -1,21 +1,22 @@
-require('dotenv').config()
-const express = require("express")
-const morgan = require('morgan');
-const app = express()
-const PORT = 3001
-const routes = require("./routes")
-const errorHandler = require("./middlewares/errorHandler")
-const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./docs/swagger'); 
+require("dotenv").config();
+const express = require("express");
+const routes = require("./routes/index.js");
+const morgan = require("morgan");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocs = require("./docs/swagger");
+const errorHandler = require("./middlewares/errorHandler.js");
 
-app.use(morgan('dev'));
-app.use(express.json()) // for parsing application/json
-app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+const app = express();
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
-app.use(routes)
-app.use(errorHandler); // paling terkahir
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: false }));
 
-app.listen(PORT, () => {
-    console.log("LISTENING ON PORT " + PORT);
-})
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+app.use(morgan("dev"));
+
+app.use(routes);
+
+app.use(errorHandler);
+
+module.exports = app;
